@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import User
+from config.validators import CustomPasswordValidator
 
 
 class UserSignUpSerializer(serializers.ModelSerializer):
@@ -21,11 +22,16 @@ class UserSignUpSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User.objects.create_user(
             email=validated_data['email'],
-            password=validated_data['password'],
-            username=validated_data['username']
+            password=validated_data['password']
         )
+        user.username = validated_data['username']
 
         return user
+        
+    def validate(self, attrs):
+        password = attrs['password']
+        CustomPasswordValidator().validate(password=password)
+        return attrs
 
 
 class UserSignUpResponseSerializer(serializers.ModelSerializer):
@@ -34,15 +40,15 @@ class UserSignUpResponseSerializer(serializers.ModelSerializer):
         fields = ['email', 'username']
 
 
-class UserSignInSerializer(serializers.Serializer):
+class UserSignInSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         fields = ['email', 'password']
 
-    # def validate(self, data):  # serializer 는 데이터 검증 및 사용자 인증
-    #     email = data.get('email', None)
-    #     password = data.get('password', None)
 
-    #     if email is not None and password is not None:
+class UserSignInResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email', 'username']
