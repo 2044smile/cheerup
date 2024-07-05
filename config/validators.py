@@ -13,14 +13,12 @@ class CustomPasswordValidator:
     def validate(self, password, user=None):
         if len(password) < 8:
             raise ValidationError("비밀번호는 8자리 이상이어야 합니다.")
-        if not re.search(r"[a-zA-Z]", password):
-            raise ValidationError("비밀번호는 하나 이상의 영문이 포함되어야 합니다.")
-        if not re.search(r"\d", password):
-            raise ValidationError("비밀번호는 하나 이상의 숫자가 포함되어야 합니다.")
+        if not re.search(r"[a-z]", password):
+            raise ValidationError("비밀번호는 소문자를 포함해야 합니다.")
+        if not re.search(r"[A-Z]", password):
+            raise ValidationError("비밀번호는 대문자를 포함해야 합니다.")
         if not re.search(r"[!@#$%^&*()]", password):
-            raise ValidationError(
-                "비밀번호는 적어도 하나 이상의 특수문자(!@#$%^&*())가 포함되어야 합니다."
-            )
+            raise ValidationError("비밀번호는 특수문자를 포함해야 합니다.")
  
     def get_help_text(self): # 2)
         return "비밀번호는 8자리 이상이며 영문, 숫자, 특수문자((!@#$%^&*()))를 포함해야 합니다"
