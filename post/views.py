@@ -75,7 +75,7 @@ class PostViewSet(viewsets.ModelViewSet):
             response = PostResponseSerializer(post)
 
             return Response(response.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
     def destroy(self, request, pk=None):
         try:
