@@ -3,7 +3,9 @@ from rest_framework import serializers, viewsets, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.filters import OrderingFilter
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 from config.exceptions import PostNotFoundException, PostPermissionDeniedException
 from post.models import Post
@@ -13,7 +15,14 @@ from post.serializers import PostDetailResponseSerializer, PostListResponseSeria
 
 @method_decorator(name='create', decorator=swagger_auto_schema(operation_id='게시글 생성', tags=['post']))
 @method_decorator(name='update', decorator=swagger_auto_schema(operation_id='게시글 수정', tags=['post']))
-@method_decorator(name='list', decorator=swagger_auto_schema(operation_id='게시글 목록', tags=['post']))
+@method_decorator(name='list', decorator=swagger_auto_schema(operation_id='게시글 목록', 
+                                                                    manual_parameters=[
+                                                                        openapi.Parameter(
+                                                                            'ordering', openapi.IN_QUERY, description="정렬 기준 (view_count, created_at)", 
+                                                                            type=openapi.TYPE_STRING
+                                                                        ),
+                                                                    ],
+                                                                    tags=['post']))
 @method_decorator(name='retrieve', decorator=swagger_auto_schema(operation_id='게시글 조회', tags=['post']))
 @method_decorator(name='destroy', decorator=swagger_auto_schema(operation_id='게시글 삭제', tags=['post']))
 class PostViewSet(viewsets.ModelViewSet):
@@ -21,6 +30,9 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     pagination_class = PageNumberPagination
+    filter_backends = [OrderingFilter]
+    ordering_fields = ['created_at', 'view_count']
+    ordering = ['-created_at']
 
     def get_queryset(self):
         return Post.objects.select_related('user').all()
@@ -76,7 +88,7 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({'204': 'ok'}, status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request):
-        posts = self.get_queryset()
+        posts = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(posts)
 
         if page is not None:
@@ -87,7 +99,15 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None):
+        try:
+            Post.objects.get(pk=pk)
+        except Post.DoesNotExist:
+            raise PostNotFoundException
+
         post = self.get_queryset().get(pk=pk)
+        post.view_count += 1
+        post.save(update_fields=['view_count'])
+
         serializer = PostDetailResponseSerializer(post)
 
         return Response(serializer.data)
