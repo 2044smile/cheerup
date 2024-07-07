@@ -1,7 +1,10 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from config.validators import CustomPasswordValidator
+from config.exceptions import UserNotFoundException, UserPasswordNotMatchException
 
 
 class UserSignUpSerializer(serializers.ModelSerializer):
@@ -17,14 +20,15 @@ class UserSignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'username']
+        fields = ['id', 'email', 'password', 'username']
 
     def create(self, validated_data):
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password']
         )
-        user.username = validated_data['username']
+        user.username = validated_data.get('username')
+        user.save()
 
         return user
         
@@ -41,14 +45,26 @@ class UserSignUpResponseSerializer(serializers.ModelSerializer):
 
 
 class UserSignInSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-
     class Meta:
         model = User
         fields = ['email', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'validators': []}
+        }
 
 
 class UserSignInResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'username']
+
+
+class UserDestroySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'validators': []}
+        }
