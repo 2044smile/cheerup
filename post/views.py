@@ -29,6 +29,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    http_method_names = ['get', 'post', 'put', 'delete']
     pagination_class = PageNumberPagination
     filter_backends = [OrderingFilter]
     ordering_fields = ['created_at', 'view_count']
