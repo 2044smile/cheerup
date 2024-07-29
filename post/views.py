@@ -29,11 +29,11 @@ class PostViewSet(viewsets.ModelViewSet):
 
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    http_method_names = ['get', 'post', 'put', 'delete']
+    http_method_names = ['get', 'post', 'put', 'delete']  # 설정한 메소드만 사용 가능
     pagination_class = PageNumberPagination
     filter_backends = [OrderingFilter]
-    ordering_fields = ['created_at', 'view_count']
-    ordering = ['-created_at']
+    ordering_fields = ['created_at', 'view_count']  # ?ordering=view_count, ?ordering=-created_at query_params 로 가능
+    ordering = ['-created_at']  # 기본 정렬
 
     def get_queryset(self):
         return Post.objects.select_related('user').all()
@@ -42,9 +42,9 @@ class PostViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return [IsAuthenticated()]
         if self.action == 'update':
-            return [IsAuthenticatedAndOwner()]
+            return [IsAuthenticatedAndOwner()]  # custom 게시글 작성자만 가능
         if self.action == 'destroy':
-            return [IsAuthenticatedAndOwner()]
+            return [IsAuthenticatedAndOwner()]  # custom 게시글 작성자만 가능
         if self.action == 'list':
             return [AllowAny()]
         if self.action == 'retrieve':
@@ -107,7 +107,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
         post = self.get_queryset().get(pk=pk)
         post.view_count += 1
-        post.save(update_fields=['view_count'])
+        post.save(update_fields=['view_count'])  # UPDATE post SET view_count = view_count + 1 WHERE id = pk
 
         serializer = PostDetailResponseSerializer(post)
 
