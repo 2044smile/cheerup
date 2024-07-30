@@ -9,7 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from config.exceptions import UserNotFoundException, UserPasswordNotMatchException, UserAlreadyExistsException
 from config.permissions import IsAuthenticatedAndOwner
 from .models import User
-from .serializers import UserSignInResponseSerializer, UserSignInSerializer, UserSignUpSerializer, UserSignUpResponseSerializer, UserDestroySerializer
+from .serializers import UserProfileUpdateSerializer, UserSignInResponseSerializer, UserSignInSerializer, UserSignUpSerializer, UserSignUpResponseSerializer, UserDestroySerializer
 
 
 class UserSignUpAPIView(APIView):
@@ -75,4 +75,25 @@ class UserDestroyAPIView(APIView):
             user.save()
         
             return Response({'204': 'ok'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 회원 정보 수정
+class UserProfileUpdateView(APIView):
+    queryset = User.objects.all()
+    serializer_class = UserProfileUpdateSerializer
+    permission_classes = [IsAuthenticatedAndOwner]
+
+    def get_object(self):
+        return self.request.user
+    
+    @swagger_auto_schema(operation_id='회원 정보 수정', tags=['user'], request_body=UserProfileUpdateSerializer)
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = UserProfileUpdateSerializer(user, data=request.data, partial=True)  # partial 모든 필드가 필요하지 않다. 즉 Patch
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

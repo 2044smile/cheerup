@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -68,3 +69,38 @@ class UserDestroySerializer(serializers.ModelSerializer):
             'password': {'write_only': True},
             'email': {'validators': []}
         }
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True, required=False)
+    new_password_confirm = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = User
+        fields = ['username', 'current_password', 'new_password', 'new_password_confirm']
+
+    def validate_current_password(self, value):
+        user = self.instance
+        if not check_password(value, user.password):
+            raise serializers.ValidationError("Current password is not correct")
+        return value
+
+    def validate(self, data):
+        # 새로운 비밀번호와 비밀번호 확인 일치 여부 확인
+        if data.get('new_password') and data.get('new_password') != data.get('new_password_confirm'):
+            raise serializers.ValidationError("New passwords do not match")
+        return data
+
+    def update(self, instance, validated_data):
+        # 사용자 이름 업데이트
+        instance.username = validated_data.get('username', instance.username)
+        
+        # 새로운 비밀번호 설정
+        new_password = validated_data.get('new_password')
+        if new_password:
+            instance.set_password(new_password)
+        
+        # 사용자 정보 저장
+        instance.save()
+        return instance

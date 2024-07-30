@@ -7,4 +7,5 @@ urlpatterns = [
     path('signup/', views.UserSignUpAPIView.as_view()),
     path('signin/', views.UserSignInAPIView.as_view()),
     path('destroy/', views.UserDestroyAPIView.as_view()),
+    path('update/', views.UserProfileUpdateView.as_view()),
 ]
