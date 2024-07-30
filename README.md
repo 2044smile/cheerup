@@ -105,9 +105,9 @@ def get_permissions(self):
     if self.action == 'create':
         return [IsAuthenticated()]
     if self.action == 'update':
-        return [IsAuthenticatedAndOwner()]
+        return [IsAuthenticatedAndOwner()]  # custom
     if self.action == 'destroy':
-        return [IsAuthenticatedAndOwner()]
+        return [IsAuthenticatedAndOwner()]  # custom
     if self.action == 'list':
         return [AllowAny()]
     if self.action == 'retrieve':
@@ -117,5 +117,5 @@ def get_permissions(self):
 ### tests.py
 
 ```python
-python manage.py test
+python manage.py test  # rest_framework.test
 ```
