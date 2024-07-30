@@ -21,5 +21,5 @@ class CustomPasswordValidator:
             raise ValidationError("비밀번호는 특수문자를 포함해야 합니다.")
  
     def get_help_text(self): # 2)
-        return "비밀번호는 8자리 이상이며 영문, 숫자, 특수문자((!@#$%^&*()))를 포함해야 합니다"
+        return "비밀번호는 8자리 이상이며 영문(소문자, 대문자), 숫자, 특수문자((!@#$%^&*()))를 포함해야 합니다"
     
