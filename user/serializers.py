@@ -79,6 +79,12 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'current_password', 'new_password', 'new_password_confirm']
+        extra_kwargs = {
+            'username': {'required': False},
+            'current_password': {'required': True},
+            'new_password': {'required': False},
+            'new_password_confirm': {'required': True}
+        }
 
     def validate_current_password(self, value):
         user = self.instance
