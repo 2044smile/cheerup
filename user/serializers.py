@@ -83,7 +83,7 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'username': {'required': False},
             'current_password': {'required': True},
             'new_password': {'required': False},
-            'new_password_confirm': {'required': True}
+            'new_password_confirm': {'required': False}
         }
 
     def validate_current_password(self, value):
